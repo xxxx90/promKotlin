@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import ru.netology.nmedia.dto.Post
 import java.util.concurrent.TimeUnit
@@ -35,20 +36,32 @@ class PostRepositoryImpl : PostRepository {
             }
     }
 
-    override fun likeById(id: Long) {
-        val request: Request = Request.Builder()
-            .url("${BASE_URL}/api/posts/$id/likes")
-            .post(gson.toJson(id).toString().toRequestBody(jsonType))
-            .build()
+    override fun likeById(post: Post): Post {
+        val request = if (post.likedByMe) {
+            Request.Builder()
+                .delete() // <--- DELETE запрос
+                .url("${BASE_URL}/api/posts/${post.id}/likes")
+                .build()
 
-
+        } else {
+            Request.Builder()
+                .url("${BASE_URL}/api/posts/${post.id}/likes")
+                .post(
+                    gson.toJson(post, Post::class.java).toRequestBody(jsonType)
+                ) // <---- POST запрос
+                .build()
+        }
+        client.newCall(request)
+            .execute()
+            .close()
 
         return client.newCall(request)
             .execute()
             .let { it.body?.string() ?: throw RuntimeException("body is null") }
             .let {
-                gson.fromJson(it, typeToken.type)
+                gson.fromJson(it, Post::class.java)
             }
+
 
     }
 
