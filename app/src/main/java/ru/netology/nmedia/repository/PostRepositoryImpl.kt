@@ -51,9 +51,6 @@ class PostRepositoryImpl : PostRepository {
                 ) // <---- POST запрос
                 .build()
         }
-        client.newCall(request)
-            .execute()
-            .close()
 
         return client.newCall(request)
             .execute()
