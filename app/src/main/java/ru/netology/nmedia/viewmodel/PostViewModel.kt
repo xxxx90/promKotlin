@@ -7,6 +7,7 @@ import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.IOException
+import java.lang.Exception
 import kotlin.concurrent.thread
 
 private val empty = Post(
@@ -34,18 +35,30 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadPosts() {
-        thread {
+
             // Начинаем загрузку
-            _data.postValue(FeedModel(loading = true))
-            try {
+            _data.value =FeedModel(loading = true)
+
                 // Данные успешно получены
-                val posts = repository.getAll()
-                FeedModel(posts = posts, empty = posts.isEmpty())
-            } catch (e: IOException) {
-                // Получена ошибка
-                FeedModel(error = true)
-            }.also(_data::postValue)
-        }
+                 repository.getAll(
+                    object : PostRepository.GetAllCallback{
+                        override fun onSuccess(posts: List<Post>) {
+                          _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
+                        }
+
+                        override fun onError(exception: Exception) {
+                            _data.postValue(FeedModel(error = true))
+                        }
+
+
+                    }
+                )
+
+
+
+
+
+
     }
 
     fun save() {
