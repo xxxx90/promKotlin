@@ -53,23 +53,35 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
                     }
                 )
-
-
-
-
-
-
     }
 
     fun save() {
-        edited.value?.let {
-            thread {
-                repository.save(it)
+_data.value = FeedModel (loading = true)
+        repository.save(
+        object : PostRepository.SavePostCallback {
+            override fun onSuccess(post: Post) {
                 _postCreated.postValue(Unit)
             }
+
+            override fun onError(exception: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+
         }
-        edited.value = empty
+        )
     }
+
+
+
+//    {
+//        edited.value?.let {
+//            thread {
+//                repository.save(it)
+//                _postCreated.postValue(Unit)
+//            }
+//        }
+//        edited.value = empty
+//    }
 
     fun edit(post: Post) {
         edited.value = post

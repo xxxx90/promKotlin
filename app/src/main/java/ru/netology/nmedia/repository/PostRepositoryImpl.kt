@@ -7,7 +7,6 @@ import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import ru.netology.nmedia.dto.Post
@@ -35,33 +34,31 @@ class PostRepositoryImpl : PostRepository {
 
         return client.newCall(request)
             .enqueue(
-               object : Callback {
-                   override fun onFailure(call: Call, e: IOException) {
-                       callback.onError(e)
-                   }
+                object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        callback.onError(e)
+                    }
 
-                   override fun onResponse(call: Call, response: Response) {
-                       val responseBody = response.body?.string()
+                    override fun onResponse(call: Call, response: Response) {
+                        val responseBody = response.body?.string()
 
-                       if (!response.isSuccessful){
-                           callback.onError(RuntimeException(responseBody))
-                           return
-                       }
+                        if (!response.isSuccessful) {
+                            callback.onError(RuntimeException(responseBody))
+                            return
+                        }
 
-                       try {
-                          callback.onSuccess(gson.fromJson(responseBody, typeToken))
-                       } catch (e: Exception){
-                           callback.onError(e)
-                       }
-                   }
-
-               }
+                        try {
+                            callback.onSuccess(gson.fromJson(responseBody, typeToken))
+                        } catch (e: Exception) {
+                            callback.onError(e)
+                        }
+                    }
+                }
             )
     }
 
 
-
-    override fun likeById(post: Post): Post {
+    override fun likeById(post: Post) {
         val request = if (post.likedByMe) {
             Request.Builder()
                 .delete() // <--- DELETE запрос
@@ -78,24 +75,53 @@ class PostRepositoryImpl : PostRepository {
         }
 
         return client.newCall(request)
-            .execute()
-            .let { it.body?.string() ?: throw RuntimeException("body is null") }
-            .let {
-                gson.fromJson(it, Post::class.java)
+            .enqueue(object : Callback) {
+                override fun onFailure(call: Call, e: IOException) {
+                    println("ошибка")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+
+
+                }
             }
+
+//            .execute()
+//            .let { it.body?.string() ?: throw RuntimeException("body is null") }
+//            .let {
+//                gson.fromJson(it, Post::class.java)
+//            }
 
 
     }
 
-    override fun save(post: Post) {
+    override fun save(post: PostRepository.SavePostCallback) {
         val request: Request = Request.Builder()
             .post(gson.toJson(post).toRequestBody(jsonType))
             .url("${BASE_URL}/api/slow/posts")
             .build()
 
-        client.newCall(request)
-            .execute()
-            .close()
+        return client.newCall(request)
+            .enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    println("ошибка")
+                }
+
+                override fun onResponse(call: Call, response: Response) {}
+            })
+
+//    override fun save(post: Post) {
+//        val request: Request = Request.Builder()
+//            .post(gson.toJson(post).toRequestBody(jsonType))
+//            .url("${BASE_URL}/api/slow/posts")
+//            .build()
+//
+//        client.newCall(request)
+//            .execute()
+//            .close()
+        //  }
+
+
     }
 
     override fun removeById(id: Long) {
