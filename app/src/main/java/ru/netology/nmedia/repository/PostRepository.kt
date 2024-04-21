@@ -7,7 +7,7 @@ import java.lang.Exception
 
 interface PostRepository {
     fun getAll(callback: GetAllCallback)
-    fun likeById(id:Long, callback: LikeBiIdCallback )
+    fun likeById(post: Post, callback: LikeBiIdCallback )
    // fun likeById(callback: LikeBiIdCallback): Post
     fun save(post: SavePostCallback)
     fun removeById(id: Long)
@@ -25,7 +25,7 @@ interface PostRepository {
     }
 
     interface SavePostCallback {
-        fun onSuccess (post: Post)
+        fun onSuccess (posts: List<Post>)
         fun onError (exception: Exception)
 
     }

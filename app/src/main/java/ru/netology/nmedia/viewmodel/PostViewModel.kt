@@ -36,41 +36,40 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPosts() {
 
-            // Начинаем загрузку
-            _data.value =FeedModel(loading = true)
+        // Начинаем загрузку
+        _data.value = FeedModel(loading = true)
 
-                // Данные успешно получены
-                 repository.getAll(
-                    object : PostRepository.GetAllCallback{
-                        override fun onSuccess(posts: List<Post>) {
-                          _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
-                        }
+        // Данные успешно получены
+        repository.getAll(
+            object : PostRepository.GetAllCallback {
+                override fun onSuccess(posts: List<Post>) {
+                    _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
+                }
 
-                        override fun onError(exception: Exception) {
-                            _data.postValue(FeedModel(error = true))
-                        }
-
-
-                    }
-                )
-    }
-
-    fun save() {
-_data.value = FeedModel (loading = true)
-        repository.save(
-        object : PostRepository.SavePostCallback {
-            override fun onSuccess(post: Post) {
-                _postCreated.postValue(Unit)
+                override fun onError(exception: Exception) {
+                    _data.postValue(FeedModel(error = true))
+                }
             }
-
-            override fun onError(exception: Exception) {
-                _data.postValue(FeedModel(error = true))
-            }
-
-        }
         )
     }
 
+    fun save() {
+        _data.value = FeedModel(loading = true)
+        repository.save(
+            object : PostRepository.SavePostCallback {
+
+                override fun onSuccess(posts: List<Post>) {
+                    _postCreated.postValue(Unit)
+                }
+
+                override fun onError(exception: Exception) {
+                    _data.postValue(FeedModel(error = true))
+                }
+
+            }
+        )
+        loadPosts()
+    }
 
 
 //    {
@@ -96,14 +95,32 @@ _data.value = FeedModel (loading = true)
     }
 
     fun likeById(post: Post) {
-        thread { val postServ = repository.likeById(post)
-            _data.postValue(
-                _data.value?.copy(posts = _data.value?.posts.orEmpty().map { if (it.id == postServ.id)
-                postServ else it})
-            )
+        repository.likeById(post, object : PostRepository.LikeBiIdCallback {
+            override fun onSuccess(posts: Post): Post {
+                _data.value?.copy(
+                    posts = _data.value?.posts.orEmpty().map { if (it.id == post.id) post else it })
+                // Адаптировать предыдущую реализацию
+                // (вместо postServ будет параметр из колбека posts, но нейминг лучше поменять)
+                loadPosts()
+                return post
+            }
 
-           }
+            override fun onError(exception: Exception) {
+                println("ошибка связи с сервером")
+                // Либо ничего не делать, либо ошибку вывести
+            }
+
+        })
     }
+
+//        thread { val postServ = repository.likeById(post, callback)
+//            _data.postValue(
+//                _data.value?.copy(posts = _data.value?.posts.orEmpty().map { if (it.id == postServ)
+//                postServ else it})
+//            )
+//
+//           }
+    //  }
 
     fun removeById(id: Long) {
         thread {

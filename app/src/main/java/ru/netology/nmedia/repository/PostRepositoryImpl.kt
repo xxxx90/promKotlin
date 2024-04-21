@@ -58,7 +58,8 @@ class PostRepositoryImpl : PostRepository {
     }
 
 
-    override fun likeById(post: Post) {
+
+    override fun likeById(post: Post, callback: PostRepository.LikeBiIdCallback) {
         val request = if (post.likedByMe) {
             Request.Builder()
                 .delete() // <--- DELETE запрос
@@ -75,24 +76,26 @@ class PostRepositoryImpl : PostRepository {
         }
 
         return client.newCall(request)
-            .enqueue(object : Callback) {
+            .enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    println("ошибка")
+                    callback.onError(e)
                 }
 
                 override fun onResponse(call: Call, response: Response) {
+                    val responseBody = response.body?.string()
 
+                    if (!response.isSuccessful) {
+                        callback.onError(RuntimeException(responseBody))
+                        return
+                    }
 
+                    try {
+                        callback.onSuccess(gson.fromJson(responseBody, Post::class.java))
+                    } catch (e: Exception) {
+                        callback.onError(e)
+                    }
                 }
-            }
-
-//            .execute()
-//            .let { it.body?.string() ?: throw RuntimeException("body is null") }
-//            .let {
-//                gson.fromJson(it, Post::class.java)
-//            }
-
-
+            })
     }
 
     override fun save(post: PostRepository.SavePostCallback) {
@@ -109,19 +112,6 @@ class PostRepositoryImpl : PostRepository {
 
                 override fun onResponse(call: Call, response: Response) {}
             })
-
-//    override fun save(post: Post) {
-//        val request: Request = Request.Builder()
-//            .post(gson.toJson(post).toRequestBody(jsonType))
-//            .url("${BASE_URL}/api/slow/posts")
-//            .build()
-//
-//        client.newCall(request)
-//            .execute()
-//            .close()
-        //  }
-
-
     }
 
     override fun removeById(id: Long) {
@@ -134,4 +124,10 @@ class PostRepositoryImpl : PostRepository {
             .execute()
             .close()
     }
+
+
 }
+
+
+
+
