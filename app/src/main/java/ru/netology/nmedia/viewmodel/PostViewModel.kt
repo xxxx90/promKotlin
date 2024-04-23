@@ -54,11 +54,25 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        _data.value = FeedModel(loading = true)
-        repository.save(
+        _data.postValue(_data.value?.copy(loading = true))
+        val currentPost = edited.value ?: return
+        edited.postValue(empty)
+        repository.save(currentPost,
             object : PostRepository.SavePostCallback {
-
-                override fun onSuccess(posts: List<Post>) {
+                override fun onSuccess(post: Post) {
+                    _data.postValue(
+                        _data.value?.copy(
+                            posts = _data.value?.posts.orEmpty().let { list ->
+                                if (list.none { it.id == post.id }) {
+                                    listOf(post) + list
+                                } else {
+                                    list.map {
+                                        if (it.id == post.id) post else it
+                                    }
+                                }
+                            }, loading = false
+                        )
+                    )
                     _postCreated.postValue(Unit)
                 }
 
@@ -68,19 +82,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
             }
         )
-        loadPosts()
     }
 
-
-//    {
-//        edited.value?.let {
-//            thread {
-//                repository.save(it)
-//                _postCreated.postValue(Unit)
-//            }
-//        }
-//        edited.value = empty
-//    }
 
     fun edit(post: Post) {
         edited.value = post
@@ -94,33 +97,26 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         edited.value = edited.value?.copy(content = text)
     }
 
+
     fun likeById(post: Post) {
         repository.likeById(post, object : PostRepository.LikeBiIdCallback {
-            override fun onSuccess(posts: Post): Post {
-                _data.value?.copy(
-                    posts = _data.value?.posts.orEmpty().map { if (it.id == post.id) post else it })
-                // Адаптировать предыдущую реализацию
-                // (вместо postServ будет параметр из колбека posts, но нейминг лучше поменять)
-                loadPosts()
+            override fun onSuccess(postServ: Post): Post {
+                _data.postValue(
+                    _data.value?.copy(posts = _data.value?.posts.orEmpty().map { if (it.id == postServ.id)
+                        postServ else it}
+                    )
+                )
                 return post
             }
 
             override fun onError(exception: Exception) {
-                println("ошибка связи с сервером")
-                // Либо ничего не делать, либо ошибку вывести
+                // do nothing
             }
 
         })
     }
 
-//        thread { val postServ = repository.likeById(post, callback)
-//            _data.postValue(
-//                _data.value?.copy(posts = _data.value?.posts.orEmpty().map { if (it.id == postServ)
-//                postServ else it})
-//            )
-//
-//           }
-    //  }
+
 
     fun removeById(id: Long) {
         thread {
@@ -139,3 +135,4 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 }
+

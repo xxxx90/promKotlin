@@ -10,6 +10,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.FeedModel
 import java.io.IOException
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
@@ -98,21 +99,36 @@ class PostRepositoryImpl : PostRepository {
             })
     }
 
-    override fun save(post: PostRepository.SavePostCallback) {
+    override fun save(post: Post, callback: PostRepository.SavePostCallback) {
         val request: Request = Request.Builder()
             .post(gson.toJson(post).toRequestBody(jsonType))
             .url("${BASE_URL}/api/slow/posts")
             .build()
 
+        // Точно также как в лайках:
         return client.newCall(request)
             .enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    println("ошибка")
+                    callback.onError(e)
                 }
 
-                override fun onResponse(call: Call, response: Response) {}
+                override fun onResponse(call: Call, response: Response) {
+                    val responseBody = response.body?.string()
+
+                    if (!response.isSuccessful) {
+                        callback.onError(RuntimeException(responseBody))
+                        return
+                    }
+
+                    try {
+                        callback.onSuccess(gson.fromJson(responseBody, Post::class.java))
+                    } catch (e: Exception) {
+                        callback.onError(e)
+                    }
+                }
             })
     }
+
 
     override fun removeById(id: Long) {
         val request: Request = Request.Builder()
