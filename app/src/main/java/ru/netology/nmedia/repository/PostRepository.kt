@@ -9,7 +9,7 @@ interface PostRepository {
     fun likeById(post: Post, callback: LikeBiIdCallback )
    // fun likeById(callback: LikeBiIdCallback): Post
     fun save(post: Post, callback: SavePostCallback)
-    fun removeById(id: Long)
+    fun removeById(id: Long, callback: RemotePostCallback)
 
     interface GetAllCallback {
         fun onSuccess (posts: List<Post>)
@@ -25,6 +25,12 @@ interface PostRepository {
 
     interface SavePostCallback {
         fun onSuccess (posts: Post)
+        fun onError (exception: Exception)
+
+    }
+
+    interface RemotePostCallback {
+        fun onSuccess (posts: List<Post>)
         fun onError (exception: Exception)
 
     }

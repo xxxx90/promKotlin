@@ -2,9 +2,11 @@ package ru.netology.nmedia.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
+import kotlinx.coroutines.flow.callbackFlow
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.*
+import ru.netology.nmedia.repository.PostRepository.RemotePostCallback
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.IOException
 import java.lang.Exception
@@ -128,7 +130,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 )
             )
             try {
-                repository.removeById(id)
+             //   repository.removeById(id)
             } catch (e: IOException) {
                 _data.postValue(_data.value?.copy(posts = old))
             }

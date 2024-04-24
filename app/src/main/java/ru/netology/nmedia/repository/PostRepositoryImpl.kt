@@ -129,20 +129,37 @@ class PostRepositoryImpl : PostRepository {
             })
     }
 
-
-    override fun removeById(id: Long) {
+    override fun removeById(id: Long, callback: PostRepository.RemotePostCallback) {
         val request: Request = Request.Builder()
             .delete()
             .url("${BASE_URL}/api/slow/posts/$id")
             .build()
 
         client.newCall(request)
-            .execute()
-            .close()
+            .enqueue(
+                object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        callback.onError(e)
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        val responseBody = response.body?.string()
+
+                        if (!response.isSuccessful) {
+                            callback.onError(RuntimeException(responseBody))
+                            return
+                        }
+
+                        try {
+                            callback.onSuccess(gson.fromJson(responseBody, typeToken))
+                        } catch (e: Exception) {
+                            callback.onError(e)
+                        }
+                    }
+                }
+            )
     }
-
-
-}
+    }
 
 
 
