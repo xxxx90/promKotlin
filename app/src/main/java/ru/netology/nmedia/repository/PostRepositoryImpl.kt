@@ -143,18 +143,13 @@ class PostRepositoryImpl : PostRepository {
                     }
 
                     override fun onResponse(call: Call, response: Response) {
-                        val responseBody = response.body?.string()
 
                         if (!response.isSuccessful) {
-                            callback.onError(RuntimeException(responseBody))
+                            callback.onError(RuntimeException(response.message))
                             return
                         }
 
-                        try {
-                            callback.onSuccess(gson.fromJson(responseBody, typeToken))
-                        } catch (e: Exception) {
-                            callback.onError(e)
-                        }
+                        callback.onSuccess(Unit)
                     }
                 }
             )

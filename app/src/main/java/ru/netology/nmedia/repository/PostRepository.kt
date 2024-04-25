@@ -1,6 +1,7 @@
 package ru.netology.nmedia.repository
 
 
+import okhttp3.Response
 import ru.netology.nmedia.dto.Post
 import java.lang.Exception
 
@@ -30,7 +31,7 @@ interface PostRepository {
     }
 
     interface RemotePostCallback {
-        fun onSuccess (posts: List<Post>)
+        fun onSuccess (response: Unit)
         fun onError (exception: Exception)
 
     }

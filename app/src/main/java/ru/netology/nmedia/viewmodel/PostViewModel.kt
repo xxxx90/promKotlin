@@ -121,7 +121,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun removeById(id: Long) {
-        thread {
+
             // Оптимистичная модель
             val old = _data.value?.posts.orEmpty()
             _data.postValue(
@@ -130,11 +130,21 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 )
             )
             try {
-             //   repository.removeById(id)
+                repository.removeById(id, object : PostRepository.RemotePostCallback{
+                    override fun onSuccess(response: Unit) {
+
+                    }
+
+                    override fun onError(exception: Exception) {
+                        _data.postValue(_data.value?.copy(posts = old))
+                    }
+
+
+                })
             } catch (e: IOException) {
                 _data.postValue(_data.value?.copy(posts = old))
             }
-        }
+      //  }
     }
 }
 
