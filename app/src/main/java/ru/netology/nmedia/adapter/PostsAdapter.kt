@@ -48,6 +48,7 @@ class PostViewHolder(
             .placeholder(R.drawable.ic_loading)
             .error(R.drawable.ic_error_foreground)
             .timeout(10_000)
+            .circleCrop()
             .into(binding.avatar)
 
 
