@@ -105,8 +105,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         repository.likeById(post, object : PostRepository.LikeBiIdCallback {
             override fun onSuccess(postServ: Post): Post {
                 _data.postValue(
-                    _data.value?.copy(posts = _data.value?.posts.orEmpty().map { if (it.id == postServ.id)
-                        postServ else it}
+                    _data.value?.copy(posts = _data.value?.posts.orEmpty().map {
+                        if (it.id == postServ.id)
+                            postServ else it
+                    }
                     )
                 )
                 return post
@@ -120,32 +122,31 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-
     fun removeById(id: Long) {
 
-            // Оптимистичная модель
-            val old = _data.value?.posts.orEmpty()
-            _data.postValue(
-                _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                    .filter { it.id != id }
-                )
+        // Оптимистичная модель
+        val old = _data.value?.posts.orEmpty()
+        _data.postValue(
+            _data.value?.copy(posts = _data.value?.posts.orEmpty()
+                .filter { it.id != id }
             )
-            try {
-                repository.removeById(id, object : PostRepository.RemotePostCallback{
-                    override fun onSuccess(response: Unit) {
+        )
+        try {
+            repository.removeById(id, object : PostRepository.RemotePostCallback {
+                override fun onSuccess(response: Unit) {
 
-                    }
+                }
 
-                    override fun onError(exception: Exception) {
-                        _data.postValue(_data.value?.copy(posts = old))
-                    }
+                override fun onError(exception: Exception) {
+                    _data.postValue(_data.value?.copy(posts = old))
+                }
 
 
-                })
-            } catch (e: IOException) {
-                _data.postValue(_data.value?.copy(posts = old))
-            }
-      //  }
+            })
+        } catch (e: IOException) {
+            _data.postValue(_data.value?.copy(posts = old))
+        }
+        //  }
     }
 }
 
