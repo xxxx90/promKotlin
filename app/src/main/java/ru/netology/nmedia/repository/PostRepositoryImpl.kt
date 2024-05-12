@@ -8,11 +8,11 @@ class PostRepositoryImpl : PostRepository {
 
     override fun getAll(callback: PostRepository.GetAllCallback) {
 
-
         return ApiService.service.getAll()
             .execute()
             .let { it.body() ?: throw RuntimeException("body is null") }
     }
+
 
 
     override fun likeById(post: Post, callback: PostRepository.LikeBiIdCallback) {
