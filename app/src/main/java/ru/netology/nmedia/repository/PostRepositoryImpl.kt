@@ -17,7 +17,7 @@ class PostRepositoryImpl : PostRepository {
                 override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
                     if (!response.isSuccessful) {
                         callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                   getAll(callback)
+                        getAll(callback)
                     }
 
                     val list = response.body()
@@ -32,7 +32,6 @@ class PostRepositoryImpl : PostRepository {
     }
 
 
-
     override fun likeById(post: Post, callback: PostRepository.LikeBiIdCallback) {
         if (post.likedByMe) {
             return ApiService.service.unlikeById(post.id)
@@ -41,7 +40,7 @@ class PostRepositoryImpl : PostRepository {
                     override fun onResponse(call: Call<Post>, response: Response<Post>) {
                         if (!response.isSuccessful) {
                             callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                       likeById(post, callback)
+                            snackBarShow()
                         }
 
                         val post = response.body()
@@ -62,13 +61,14 @@ class PostRepositoryImpl : PostRepository {
                     override fun onResponse(call: Call<Post>, response: Response<Post>) {
                         if (!response.isSuccessful) {
                             callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                       likeById(post, callback)
+                            snackBarShow()
                         }
 
                         val post = response.body()
                             ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
                         callback.onSuccess(post)
                     }
+
                     override fun onFailure(call: Call<Post>, t: Throwable) {
                         callback.onError(RuntimeException("Message: ${t.message}"))
                     }
@@ -87,7 +87,7 @@ class PostRepositoryImpl : PostRepository {
             override fun onResponse(call: Call<Post>, response: Response<Post>) {
                 if (!response.isSuccessful) {
                     callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-               save(post, callback)
+                    save(post, callback)
                 }
                 val list = response.body()
                     ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
@@ -100,40 +100,33 @@ class PostRepositoryImpl : PostRepository {
         })
 
 
-
-
     }
 
     override fun removeById(id: Long, callback: PostRepository.RemotePostCallback) {
-       return ApiService.service.deleteById(id)
-           .enqueue(object : Callback<Unit> {
+        return ApiService.service.deleteById(id)
+            .enqueue(object : Callback<Unit> {
 
-               override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
-                   if (!response.isSuccessful) {
-                       callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
+                override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+                    if (!response.isSuccessful) {
+                        callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
+                    }
 
+                    val list = response.body()
+                        ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
+                    callback.onSuccess(list)
+                }
 
-                   }
-
-                   val list = response.body()
-                       ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                   callback.onSuccess(list)
-               }
-
-               override fun onFailure(call: Call<Unit>, t: Throwable) {
-                   callback.onError(RuntimeException("Message: ${t.message}"))
-
-               }
-           })
-
-
+                override fun onFailure(call: Call<Unit>, t: Throwable) {
+                    callback.onError(RuntimeException("Message: ${t.message}"))
+                }
+            })
     }
 
-    fun snackBarShow (){
+    fun snackBarShow() {
         val txt = "Ошибка обращения к серверу"
-        val snackbar = Snackbar.make(this, txt )
-            snackbar.show()
-       
+        val snackbar = Snackbar.make(this, txt)
+        snackbar.show()
+
     }
 }
 
