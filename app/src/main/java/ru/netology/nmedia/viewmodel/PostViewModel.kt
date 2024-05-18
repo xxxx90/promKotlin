@@ -1,16 +1,15 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.*
-import kotlinx.coroutines.flow.callbackFlow
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
-import ru.netology.nmedia.repository.*
-import ru.netology.nmedia.repository.PostRepository.RemotePostCallback
+import ru.netology.nmedia.repository.PostRepository
+import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.IOException
-import java.lang.Exception
-import kotlin.concurrent.thread
 
 private val empty = Post(
     id = 0,
@@ -32,6 +31,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
+
+    private val _error = SingleLiveEvent<Unit>()
+    val error: LiveData<Unit>
+        get() = _postCreated
+
 
     init {
         loadPosts()
@@ -81,6 +85,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
                 override fun onError(exception: Exception) {
                     _data.postValue(FeedModel(error = true))
+                    _error.value=Unit
                 }
 
             }

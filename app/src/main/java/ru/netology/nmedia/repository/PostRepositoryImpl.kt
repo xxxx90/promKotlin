@@ -1,7 +1,6 @@
 package ru.netology.nmedia.repository
 
 
-import com.google.android.material.snackbar.Snackbar
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -40,7 +39,7 @@ class PostRepositoryImpl : PostRepository {
                     override fun onResponse(call: Call<Post>, response: Response<Post>) {
                         if (!response.isSuccessful) {
                             callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                            snackBarShow()
+
                         }
 
                         val post = response.body()
@@ -61,7 +60,7 @@ class PostRepositoryImpl : PostRepository {
                     override fun onResponse(call: Call<Post>, response: Response<Post>) {
                         if (!response.isSuccessful) {
                             callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                            snackBarShow()
+
                         }
 
                         val post = response.body()
@@ -122,12 +121,7 @@ class PostRepositoryImpl : PostRepository {
             })
     }
 
-    fun snackBarShow() {
-        val txt = "Ошибка обращения к серверу"
-        val snackbar = Snackbar.make(this, txt)
-        snackbar.show()
 
-    }
 }
 
 
