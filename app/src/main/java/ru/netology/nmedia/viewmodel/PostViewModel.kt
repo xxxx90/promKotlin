@@ -34,7 +34,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _error = SingleLiveEvent<Unit>()
     val error: LiveData<Unit>
-        get() = _postCreated
+        get() = _error
 
 
     init {
@@ -55,6 +55,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
                 override fun onError(exception: Exception) {
                     _data.postValue(FeedModel(error = true))
+                    _error.postValue(Unit)
+
                 }
             }
         )
@@ -84,8 +86,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 override fun onError(exception: Exception) {
-                    _data.postValue(FeedModel(error = true))
-                    _error.value=Unit
+                    _error.postValue(Unit)
+
                 }
 
             }
@@ -120,7 +122,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onError(exception: Exception) {
-                // do nothing
+                _error.postValue(Unit)
             }
 
         })
