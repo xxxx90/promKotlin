@@ -1,126 +1,77 @@
 package ru.netology.nmedia.repository
 
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.annotation.SuppressLint
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
+import okio.IOException
+import ru.netology.nmedia.ApiError
+import ru.netology.nmedia.NetworkException
+import ru.netology.nmedia.UnknownException
 import ru.netology.nmedia.api.ApiService
+import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.entity.toDto
+import ru.netology.nmedia.entity.toEntity
 
 
-class PostRepositoryImpl : PostRepository {
+class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
+    override val data: LiveData<List<Post>> = dao.getAll().map { it.toDto() }
 
-    override fun getAll(callback: PostRepository.GetAllCallback) {
-        return ApiService.service.getAll()
-            .enqueue(object : Callback<List<Post>> {
-                override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
-                    if (!response.isSuccessful) {
-                        callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                        getAll(callback)
-                    }
 
-                    val list = response.body()
-                        ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                    callback.onSuccess(list)
-                }
+    @SuppressLint("SuspiciousIndentation")
+    override suspend fun getAll() {
 
-                override fun onFailure(call: Call<List<Post>>, t: Throwable) {
-                    callback.onError(RuntimeException("Message: ${t.message}"))
-                }
-            })
+        try {
+            val response = ApiService.service.getAll()
+            if (!response.isSuccessful) throw ApiError(response.code())
+            val posts = response.body() ?: throw UnknownException
+            dao.insert(posts.toEntity())
+        } catch (e: IOException) {
+            throw NetworkException
+        } catch (e: ApiError) {
+            throw e
+        } catch (e: Exception) {
+            throw UnknownException
+        }
     }
 
+    override suspend fun likeById(id: Long) {
 
-    override fun likeById(post: Post, callback: PostRepository.LikeBiIdCallback) {
-        if (post.likedByMe) {
-            return ApiService.service.unlikeById(post.id)
-                .enqueue(object : Callback<Post> {
+        try {
+            val response = ApiService.service.likeById(id)
+            if (!response.isSuccessful) throw ApiError(response.code())
 
-                    override fun onResponse(call: Call<Post>, response: Response<Post>) {
-                        if (!response.isSuccessful) {
-                            callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-
-                        }
-
-                        val post = response.body()
-                            ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                        callback.onSuccess(post)
-
-                    }
-
-                    override fun onFailure(call: Call<Post>, t: Throwable) {
-                        callback.onError(RuntimeException("Message: ${t.message}"))
-                    }
-                })
-
-        } else {
-            return ApiService.service.likeById(post.id)
-                .enqueue(object : Callback<Post> {
-
-                    override fun onResponse(call: Call<Post>, response: Response<Post>) {
-                        if (!response.isSuccessful) {
-                            callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-
-                        }
-
-                        val post = response.body()
-                            ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                        callback.onSuccess(post)
-                    }
-
-                    override fun onFailure(call: Call<Post>, t: Throwable) {
-                        callback.onError(RuntimeException("Message: ${t.message}"))
-                    }
-                })
-
-
+        } catch (e: IOException) {
+            throw NetworkException
+        } catch (e: ApiError) {
+            throw e
+        } catch (e: Exception) {
+            throw UnknownException
         }
 
 
     }
 
-    override fun save(post: Post, callback: PostRepository.SavePostCallback) {
-        ApiService.service.save(post).enqueue(object : Callback<Post> {
+    override suspend fun save(post: Post) {
 
+        ApiService.service.save(post)
+    }
 
-            override fun onResponse(call: Call<Post>, response: Response<Post>) {
-                if (!response.isSuccessful) {
-                    callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                    save(post, callback)
-                }
-                val list = response.body()
-                    ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                callback.onSuccess(list)
-            }
-
-            override fun onFailure(call: Call<Post>, t: Throwable) {
-                callback.onError(RuntimeException("Message: ${t.message}"))
-            }
-        })
+    override suspend fun removeById(id: Long) {
+        try {
+            val response = ApiService.service.deleteById(id)
+            if (!response.isSuccessful) throw ApiError(response.code())
+        } catch (e: IOException) {
+            throw NetworkException
+        } catch (e: ApiError) {
+            throw e
+        } catch (e: Exception) {
+            throw UnknownException
+        }
 
 
     }
-
-    override fun removeById(id: Long, callback: PostRepository.RemotePostCallback) {
-        return ApiService.service.deleteById(id)
-            .enqueue(object : Callback<Unit> {
-
-                override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
-                    if (!response.isSuccessful) {
-                        callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                    }
-
-                    val list = response.body()
-                        ?: return callback.onError(RuntimeException("Code: ${response.code()}; Message: ${response.message()}"))
-                    callback.onSuccess(list)
-                }
-
-                override fun onFailure(call: Call<Unit>, t: Throwable) {
-                    callback.onError(RuntimeException("Message: ${t.message}"))
-                }
-            })
-    }
-
 
 }
 

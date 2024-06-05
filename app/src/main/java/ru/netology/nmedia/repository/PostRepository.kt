@@ -1,38 +1,15 @@
 package ru.netology.nmedia.repository
 
 
-import okhttp3.Response
+import androidx.lifecycle.LiveData
 import ru.netology.nmedia.dto.Post
-import java.lang.Exception
 
 interface PostRepository {
-    fun getAll(callback: GetAllCallback)
-    fun likeById(post: Post, callback: LikeBiIdCallback )
-   // fun likeById(callback: LikeBiIdCallback): Post
-    fun save(post: Post, callback: SavePostCallback)
-    fun removeById(id: Long, callback: RemotePostCallback)
+    val data: LiveData<List<Post>>
+    suspend fun getAll()
+   suspend fun likeById(id: Long)
 
-    interface GetAllCallback {
-        fun onSuccess (posts: List<Post>)
-        fun onError (exception: Exception)
+    suspend fun save(post: Post)
+   suspend fun removeById(id: Long)
 
-    }
-
-    interface LikeBiIdCallback {
-        fun onSuccess (posts: Post):Post
-        fun onError (exception: Exception)
-
-    }
-
-    interface SavePostCallback {
-        fun onSuccess (posts: Post)
-        fun onError (exception: Exception)
-
-    }
-
-    interface RemotePostCallback {
-        fun onSuccess (response: Unit)
-        fun onError (exception: Exception)
-
-    }
 }
