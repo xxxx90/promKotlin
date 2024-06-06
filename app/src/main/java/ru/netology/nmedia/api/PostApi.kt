@@ -31,7 +31,7 @@ interface PostApi {
   suspend fun getAll(): Response <List<Post>>
 
    @POST("posts")
-  suspend fun save(@Body post: Post): Post
+  suspend fun save(@Body post: Post): Response <Post>
 
    @POST("posts/{id}/likes")
   suspend fun likeById(@Path("id") id: Long): Response <Post>

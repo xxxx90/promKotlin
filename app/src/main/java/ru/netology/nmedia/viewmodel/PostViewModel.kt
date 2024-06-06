@@ -7,11 +7,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import ru.netology.nmedia.AppErrors
-import ru.netology.nmedia.NetworkException
-import ru.netology.nmedia.UnknownException
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.error.ApiError
+import ru.netology.nmedia.error.AppErrors
+import ru.netology.nmedia.error.NetworkException
+import ru.netology.nmedia.error.UnknownException
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.PostRepository
@@ -62,7 +63,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             if (e is AppErrors) {
                 when (e) {
 
-                    is AppErrors -> {}
+                    is ApiError -> {}
                     NetworkException -> {}
                     UnknownException -> {}
                 }

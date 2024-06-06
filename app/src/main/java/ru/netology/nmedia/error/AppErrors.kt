@@ -1,4 +1,4 @@
-package ru.netology.nmedia
+package ru.netology.nmedia.error
 
 sealed class AppErrors : RuntimeException()
 
