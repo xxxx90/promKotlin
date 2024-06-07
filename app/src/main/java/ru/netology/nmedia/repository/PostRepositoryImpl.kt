@@ -8,7 +8,6 @@ import okio.IOException
 import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.error.ApiError
@@ -50,7 +49,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             if (!response.isSuccessful) throw ApiError(response.code())
 
             val post = response.body() ?: throw UnknownException
-            dao.insert(post.toEntity() )
+            dao.likeById(id)
 
         } catch (e: IOException) {
             throw NetworkException
@@ -70,8 +69,8 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             val response = ApiService.service.save(post)
             if (!response.isSuccessful) throw ApiError(response.code())
 
-            val post = response.body() ?: throw UnknownException
-            dao.insert(post.toEntity())
+            val posts = response.body() ?: throw UnknownException
+        //    dao.insert(posts.toEntity())
 
         } catch (e: IOException) {
             throw NetworkException
@@ -90,8 +89,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             val response = ApiService.service.deleteById(id)
             if (!response.isSuccessful) throw ApiError(response.code())
 
-            val posts = response.body() ?: throw UnknownException
-            dao.insert(posts.toEntity())
+            dao.removeById(id)
 
         } catch (e: IOException) {
             throw NetworkException
